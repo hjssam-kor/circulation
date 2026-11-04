@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>온몸순환과 허파순환</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1:wght@400;600;800&display=swap">
+<style>
+/* Layout: 학습지 한 장 — 왼쪽 심장 도식(터치 캔버스), 오른쪽 도구·순서 채우기. 좁으면 위아래로 쌓임 */
+:root{
+  --bg:#EEF2F1; --paper:#FFFFFF; --ink:#1B2A2F; --muted:#5E6E72; --line:#C9D3D2;
+  --accent:#0F7C78; --accent-soft:#D6EEEC;
+  --art:#D3263A; --art-soft:#F7D3D7; --vein:#2350B8; --vein-soft:#D3DDF6;
+  --tube:#F7F9F9; --tube-edge:#3A4A4F; --ok:#1E8E4E; --bad:#D9480F; --sel:#E2A100;
+  --lung:#F2A7B0; --lung-hi:#FCDDE1; --lung-edge:#C9707E; --tree:#9C6A9E; --heart:#C44A3E; --heart-hi:#EC8A72; --heart-edge:#8E2B23;
+  --cell:#D9CCEE; --cell-hi:#F4EEFC; --cell-edge:#A893CC; --nuc:#8C6BC4; --net:#8F8AA8; --trach:#B8C4D2;
+  --f-display:"Do Hyeon","Gothic A1",system-ui,sans-serif;
+  --f-body:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121A1C; --paper:#1A2427; --ink:#E6EEEE; --muted:#9AAAAD; --line:#33454A;
+  --accent:#4FC2BB; --accent-soft:#163A39;
+  --art:#FF5A6B; --art-soft:#4A1E25; --vein:#6E95FF; --vein-soft:#1C2A4E;
+  --tube:#243136; --tube-edge:#B9C7CA; --ok:#4CD38A; --bad:#FF8A4C; --sel:#FFC23D;
+  --lung:#8E4E58; --lung-hi:#B66B76; --lung-edge:#D88F9B; --tree:#E0B6E2; --heart:#9C3A31; --heart-hi:#C65A4B; --heart-edge:#E07A6C;
+  --cell:#4B3F63; --cell-hi:#6A5C8E; --cell-edge:#A893CC; --nuc:#C3A8F2; --net:#B0ABCB; --trach:#7D8A99; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121A1C; --paper:#1A2427; --ink:#E6EEEE; --muted:#9AAAAD; --line:#33454A;
+  --accent:#4FC2BB; --accent-soft:#163A39;
+  --art:#FF5A6B; --art-soft:#4A1E25; --vein:#6E95FF; --vein-soft:#1C2A4E;
+  --tube:#243136; --tube-edge:#B9C7CA; --ok:#4CD38A; --bad:#FF8A4C; --sel:#FFC23D;
+  --lung:#8E4E58; --lung-hi:#B66B76; --lung-edge:#D88F9B; --tree:#E0B6E2; --heart:#9C3A31; --heart-hi:#C65A4B; --heart-edge:#E07A6C;
+  --cell:#4B3F63; --cell-hi:#6A5C8E; --cell-edge:#A893CC; --nuc:#C3A8F2; --net:#B0ABCB; --trach:#7D8A99; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 32px;
+  -webkit-tap-highlight-color:transparent}
+.app{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,4vw,34px);margin:0;letter-spacing:.01em;text-wrap:balance}
+.who{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-weight:600}
+.who input{font:inherit;color:var(--ink);background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:6px 8px;width:3.2em;text-align:center}
+.who input#nm{width:7em;text-align:left}
+.who input:focus{outline:none;border-color:var(--accent)}
+.grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media (min-width:820px){.grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+.stage svg{width:100%;height:auto;display:block;touch-action:manipulation;user-select:none}
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.tabs{display:grid;grid-template-columns:1fr;gap:6px;background:var(--bg);padding:5px;border-radius:12px}
+.tab{font:inherit;font-weight:800;border:0;border-radius:9px;padding:10px 14px;text-align:left;display:flex;align-items:center;background:transparent;color:var(--muted);cursor:pointer;min-height:48px}
+.tab .n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;font-size:12px;margin-right:6px}
+.tab[aria-selected="true"]{background:var(--paper);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.hint{margin:10px 2px 8px;color:var(--muted);font-size:14px}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.tool{font:inherit;font-weight:700;display:flex;align-items:center;gap:8px;min-height:48px;padding:8px 14px;border-radius:10px;
+  border:2px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tool[aria-pressed="true"]{border-color:var(--sel);box-shadow:0 0 0 3px color-mix(in srgb,var(--sel) 30%,transparent)}
+.tool:focus-visible,.tab:focus-visible,.btn:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sw{width:22px;height:22px;border-radius:50%}
+.ln{width:34px;height:0;border-top:3px solid var(--ink)}
+.ln.d{border-top-style:dashed}
+h2{font-family:var(--f-display);font-weight:400;font-size:20px;margin:0 0 8px}
+.flow{display:flex;flex-direction:column;gap:12px}
+.row{display:grid;gap:6px}
+.row .lab{display:flex;align-items:center;gap:10px;font-weight:800}
+.row .lab .ln{width:40px}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px 4px}
+.chain .fix{padding:6px 8px;border-radius:8px;background:var(--bg);font-weight:600;font-size:14px}
+.chain .ar{color:var(--muted);font-weight:800}
+.chain .ar.r{color:var(--art)} .chain .ar.b{color:var(--vein)}
+select{font:inherit;font-weight:700;color:var(--ink);background:var(--paper);border:2px dashed var(--accent);border-radius:8px;padding:6px 6px;min-height:40px;max-width:100%}
+select.filled{border-style:solid}
+select.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--paper))}
+select.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--paper))}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:inherit;font-weight:800;min-height:48px;padding:10px 18px;border-radius:10px;border:2px solid var(--accent);background:var(--accent);color:var(--paper);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.warn{border-color:var(--bad);color:var(--bad);background:transparent}
+.score{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.score div{background:var(--bg);border-radius:10px;padding:8px;text-align:center;font-size:13px;color:var(--muted);font-weight:600}
+.score b{display:block;font-family:var(--f-display);font-weight:400;font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+.total{font-family:var(--f-display);font-size:22px;margin-top:8px}
+/* svg */
+.tubeE{fill:none;stroke:var(--tube-edge);stroke-width:18;stroke-linecap:round;stroke-linejoin:round}
+.tubeI{fill:none;stroke:var(--tube);stroke-width:13;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.tubeI.red{stroke:var(--art)} .tubeI.blue{stroke:var(--vein)}
+.hit{fill:none;stroke:transparent;stroke-width:32;stroke-linecap:round;stroke-linejoin:round;cursor:pointer;pointer-events:stroke}
+.flowL{fill:none;stroke:var(--ink);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.flowL.on-col{stroke:var(--paper)}
+.ch{stroke:var(--heart-edge);stroke-width:2;fill:var(--tube);cursor:pointer;transition:fill .2s}
+.ch.red{fill:var(--art-soft)} .ch.blue{fill:var(--vein-soft)}
+.ch.sel{stroke:var(--sel);stroke-width:5}
+.ch.ok{stroke:var(--ok);stroke-width:5} .ch.bad{stroke:var(--bad);stroke-width:5}
+.chl{font:800 13px var(--f-body);fill:var(--ink);text-anchor:middle;pointer-events:none}
+.chl.empty{fill:var(--muted);font-size:18px}
+.lung{fill:url(#gLung);stroke:var(--lung-edge);stroke-width:2}
+.tree{fill:none;stroke:var(--tree);stroke-width:1.6;stroke-linecap:round;opacity:.75}
+.trach{fill:var(--trach);stroke:var(--tube-edge);stroke-width:1.2}
+.ring{stroke:var(--tube-edge);stroke-width:1;opacity:.45}
+.bron{fill:none;stroke:var(--trach);stroke-width:7;stroke-linecap:round}
+.net{fill:none;stroke:var(--net);stroke-width:1.3;stroke-linejoin:round}
+.netl{fill:none;stroke:var(--net);stroke-width:2.2;stroke-linecap:round}
+.heart{fill:url(#gHeart);stroke:var(--heart-edge);stroke-width:2.5}
+.cell{fill:url(#gCell);stroke:var(--cell-edge);stroke-width:1.5}
+.nuc{fill:var(--nuc);opacity:.85}
+.orgname{font:400 22px var(--f-display);fill:var(--ink);text-anchor:middle}
+.cap-t{font:600 11px var(--f-body);fill:var(--muted);text-anchor:middle}
+.tubeH{fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;opacity:.28;pointer-events:none}
+.whyR{fill:var(--paper);stroke:var(--bad);stroke-width:1.5}
+.whyT{font:800 11px var(--f-body);fill:var(--bad);text-anchor:middle;dominant-baseline:central}
+.badge circle{stroke:var(--paper);stroke-width:2}
+.badge text{font:800 13px var(--f-body);fill:#fff;text-anchor:middle;dominant-baseline:central}
+.chip{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;border-style:dashed;border-color:var(--accent);background:var(--accent-soft)}
+.chip.used{opacity:.45}
+.ghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;padding:8px 14px;border-radius:10px;background:var(--accent);color:var(--paper);font-weight:800;box-shadow:0 6px 16px rgba(0,0,0,.25);transform:translate(-50%,-140%)}
+.ch.drop{stroke:var(--sel);stroke-width:6;fill:color-mix(in srgb,var(--sel) 22%,var(--tube))}
+svg.dragmode{touch-action:none}
+.hit.drop{stroke:color-mix(in srgb,var(--sel) 45%,transparent)}
+body.dragging{cursor:grabbing;user-select:none;-webkit-user-select:none}
+.tab[aria-disabled="true"]{opacity:.4;cursor:not-allowed}
+.locked{opacity:.45;pointer-events:none;filter:grayscale(.4)}
+.namebar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.namebar .btn:disabled{opacity:.45;cursor:not-allowed}
+#nameMsg{font-weight:700}
+#nameMsg.ok{color:var(--ok)} #nameMsg.bad{color:var(--bad)}
+.h4{display:flex;align-items:center;gap:8px}
+.h4 .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;font:800 13px var(--f-body);color:var(--accent)}
+#tools>.flow{width:100%}
+.lockNote{margin:0;color:var(--muted);font-weight:700;font-size:14px}
+#toolbox{background:var(--paper);border-radius:0 0 9px 9px;padding:0 14px 14px;margin-top:-6px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+#toolbox .hint{margin-top:0;padding-top:4px}
+.tab[aria-selected="true"]{border-radius:9px 9px 0 0}
+.celebrate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:color-mix(in srgb,var(--ink) 45%,transparent);
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.celebrate canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cbox{position:relative;background:var(--paper);border-radius:20px;padding:28px 26px 22px;max-width:360px;width:100%;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.3);animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+.cbox .big{font:400 40px var(--f-display);margin:6px 0 4px;color:var(--accent)}
+.cbox .hearts{font-size:44px;line-height:1}
+.cbox p{margin:6px 0 18px;color:var(--ink);font-weight:600}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+/* 10인치 태블릿 가로: 한 화면에 그림 전체가 보이도록 */
+@media (min-width:820px) and (orientation:landscape){
+  body{padding-block:10px 12px}
+  .app{max-width:1400px;gap:10px}
+  h1{font-size:28px}
+  .who .btn{min-height:42px;padding:6px 14px}
+  .grid{grid-template-columns:auto minmax(340px,1fr);gap:12px}
+  .stage{position:sticky;top:10px;padding:10px}
+  .stage svg{height:calc(100dvh - 104px);min-height:420px;width:auto;max-width:100%;margin:0 auto}
+  .side{gap:10px}
+  .panel{padding:12px}
+  .tab{min-height:44px;font-size:16px}
+  .hint{font-size:15px}
+  .tool{min-height:52px;font-size:16px;padding:8px 16px}
+}
+.fsMsg{flex-basis:100%;text-align:right;font-size:13px;color:var(--bad);font-weight:700}
+.flash{animation:fl .6s}
+@keyframes fl{50%{opacity:.4}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <h1>온몸순환과 허파순환</h1>
+    <div class="who">2학년 <input id="ban" inputmode="numeric" aria-label="반">반 <input id="bun" inputmode="numeric" aria-label="번">번 이름 <input id="nm" aria-label="이름"> <button class="btn ghost" id="fs">⛶ 전체화면</button> <button class="btn warn" id="reset">처음부터</button><span id="fsMsg" class="fsMsg" role="status" hidden></span></div>
+  </header>
+
+  <div class="grid">
+    <div class="panel stage">
+      <svg id="svg" viewBox="0 0 400 600" role="img" aria-label="허파, 심장, 세포를 잇는 혈관 그림">
+        <defs>
+          <radialGradient id="gLung" cx="40%" cy="30%" r="80%"><stop offset="0" style="stop-color:var(--lung-hi)"/><stop offset="1" style="stop-color:var(--lung)"/></radialGradient>
+          <radialGradient id="gHeart" cx="38%" cy="28%" r="85%"><stop offset="0" style="stop-color:var(--heart-hi)"/><stop offset="1" style="stop-color:var(--heart)"/></radialGradient>
+          <radialGradient id="gCell" cx="35%" cy="30%" r="75%"><stop offset="0" style="stop-color:var(--cell-hi)"/><stop offset="1" style="stop-color:var(--cell)"/></radialGradient>
+        </defs>
+        <!-- 허파 -->
+        <rect class="trach" x="192" y="0" width="16" height="64" rx="6"/>
+        <path class="ring" d="M192,8 H208 M192,16 H208 M192,24 H208 M192,32 H208 M192,40 H208 M192,48 H208 M192,56 H208"/>
+        <path class="bron" d="M200,60 C196,70 186,74 178,82 M200,60 C204,70 214,74 222,82"/>
+        <path class="lung" d="M184,74 C160,48 112,54 100,100 C90,140 94,170 112,178 C134,186 162,176 180,164 C191,150 191,110 184,74 Z"/>
+        <path class="lung" d="M216,74 C240,48 288,54 300,100 C310,140 306,170 288,178 C266,186 238,176 220,164 C209,150 209,110 216,74 Z"/>
+        <path class="tree" d="M180,84 C168,100 152,110 130,118 M162,103 C152,90 140,84 126,82 M150,112 C146,130 136,145 120,156 M166,118 C166,138 161,154 152,166 M136,142 L123,147 M140,98 L130,86 M118,118 L108,112 M158,136 L145,150 M220,84 C232,100 248,110 270,118 M238,103 C248,90 260,84 274,82 M250,112 C254,130 264,145 280,156 M234,118 C234,138 239,154 248,166 M264,142 L277,147 M260,98 L270,86 M282,118 L292,112 M242,136 L255,150"/>
+        <path class="netl" d="M166,190 C163,182 160,176 156,168 M182,186 C181,178 179,172 176,166 M218,186 C219,178 221,172 224,166 M234,190 C237,182 240,176 244,168"/>
+        <path class="net" d="M158,196 C180,178 220,178 242,196 C220,214 180,214 158,196 Z M168,190 L232,202 M168,202 L232,190 M175,186 L190,207 M190,183 L205,209 M205,183 L220,208 M220,185 L231,203 M180,206 L195,183 M195,209 L210,183 M210,208 L224,185"/>
+        <text class="cap-t" x="200" y="228">허파의 모세혈관</text>
+        <!-- 세포 -->
+        <path class="netl" d="M168,486 L163,508 M185,491 L183,512 M215,491 L217,512 M232,486 L237,508"/>
+        <path class="net" d="M158,478 C180,460 220,460 242,478 C220,496 180,496 158,478 Z M168,472 L232,484 M168,484 L232,472 M175,468 L190,489 M190,465 L205,491 M205,465 L220,490 M220,467 L231,485 M180,488 L195,465 M195,491 L210,465 M210,490 L224,467"/>
+        <text class="cap-t" x="200" y="455">온몸의 모세혈관</text>
+        <g>
+          <circle class="cell" cx="158" cy="528" r="26"/><circle class="nuc" cx="155" cy="531" r="9"/>
+          <circle class="cell" cx="204" cy="522" r="27"/><circle class="nuc" cx="201" cy="526" r="9.5"/>
+          <circle class="cell" cx="250" cy="530" r="25"/><circle class="nuc" cx="247" cy="533" r="9"/>
+          <circle class="cell" cx="136" cy="572" r="24"/><circle class="nuc" cx="133" cy="575" r="8.5"/>
+          <circle class="cell" cx="182" cy="570" r="26"/><circle class="nuc" cx="179" cy="573" r="9"/>
+          <circle class="cell" cx="229" cy="572" r="25"/><circle class="nuc" cx="226" cy="575" r="9"/>
+          <circle class="cell" cx="272" cy="566" r="21"/><circle class="nuc" cx="270" cy="569" r="7.5"/>
+        </g>
+        <text class="orgname" x="348" y="118">허파</text>
+        <text class="orgname" x="348" y="342">심장</text>
+        <text class="orgname" x="348" y="556">세포</text>
+        <path id="meas" fill="none" stroke="none" d="M0,0"/>
+        <g id="vessels"></g>
+        <!-- 심장 -->
+        <path class="heart" d="M200,282 C188,258 150,252 138,280 C126,310 140,360 175,392 C190,405 205,414 214,416 C222,398 248,372 260,340 C272,306 262,264 232,262 C218,262 206,270 200,282 Z"/>
+        <g id="chambers"></g>
+        <g id="labels"></g>
+        <g id="badges"></g>
+      </svg>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" data-mode="label"><span class="n">1</span>이름</button>
+          <button class="tab" role="tab" data-mode="color"><span class="n">2</span>동맥혈 · 정맥혈</button>
+          <button class="tab" role="tab" data-mode="seq"><span class="n">3</span>혈액이 흐르는 순서</button>
+          <button class="tab" role="tab" data-mode="arrow"><span class="n">4</span>온몸순환 · 허파순환</button>
+        </div>
+        <div id="toolbox"><p class="hint" id="hint"></p>
+        <div class="tools" id="tools"></div>
+        <div class="namebar" id="namebar"><button class="btn" id="nameCheck">이름 채점하기</button><span id="nameMsg" role="status"></span></div></div>
+      </div>
+      <p class="lockNote" id="lockNote"></p>
+
+      <div id="flowHold" hidden><div class="flow" id="flow">
+          <div class="row">
+            <div class="lab">온몸 순환 <span class="ln"></span></div>
+            <div class="chain">
+              <span class="fix">좌심실</span><span class="ar r">→</span>
+              <select id="a1"></select><span class="ar r">→</span>
+              <span class="fix">온몸의 모세혈관</span><span class="ar b">→</span>
+              <select id="a3"></select><span class="ar b">→</span>
+              <span class="fix">우심방</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="lab">허파순환 <span class="ln d"></span></div>
+            <div class="chain">
+              <span class="fix">우심실</span><span class="ar b">→</span>
+              <select id="p2"></select><span class="ar b">→</span>
+              <span class="fix">허파의 모세혈관</span><span class="ar r">→</span>
+              <select id="p4"></select><span class="ar r">→</span>
+              <span class="fix">좌심방</span>
+            </div>
+          </div>
+        </div>
+
+      <div class="panel" id="finalPanel">
+        <div class="actions">
+          <button class="btn" id="check">채점하기</button>
+          <button class="btn ghost" id="answer" hidden>정답 보기</button>
+        </div>
+        <div id="result" hidden>
+          <div class="score">
+            <div>이름<b id="s1">0/4</b></div>
+            <div>순서<b id="s2">0/4</b></div>
+            <div>순환 표시<b id="s3">0/4</b></div>
+            <div>동맥혈·정맥혈<b id="s4">0/8</b></div>
+          </div>
+          <div class="total" id="total"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="celebrate" id="celebrate" hidden role="dialog" aria-modal="true" aria-labelledby="cTitle">
+  <canvas id="confetti"></canvas>
+  <div class="cbox">
+    <div class="hearts">❤️</div>
+    <div class="big" id="cTitle">축하합니다!</div>
+    <p id="cMsg">20문항을 모두 맞혔어요. 이제 혈액 순환 박사예요!</p>
+    <button class="btn" id="cClose">고마워요</button>
+  </div>
+</div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const CH={
+  RA:{d:"M150,290 C150,277 162,272 176,274 L196,277 L196,320 L148,320 C147,308 148,298 150,290 Z",t:[172,303]},
+  LA:{d:"M204,277 L224,274 C238,272 250,277 250,290 C252,298 253,308 252,320 L204,320 Z",t:[228,303]},
+  RV:{d:"M148,326 L196,326 L196,394 C176,382 155,360 148,326 Z",t:[178,352]},
+  LV:{d:"M204,326 L252,326 C250,356 232,384 210,400 L204,396 Z",t:[226,352]}
+};
+const VS={
+  PA:"M172,268 C165,240 100,265 100,232 C100,205 125,196 158,196",
+  PV:"M242,196 C275,196 300,205 300,232 C300,265 235,240 228,268",
+  AO:"M260,335 C302,340 302,380 300,420 C298,456 280,477 242,478",
+  VC:"M158,478 C120,477 102,456 100,420 C98,380 98,322 140,318"
+};
+const TERMS=["대동맥","대정맥","폐동맥","폐정맥"];
+const ANS={
+  labels:{RA:"우심방",RV:"우심실",LA:"좌심방",LV:"좌심실"},
+  seq:{a1:"대동맥",a3:"대정맥",p2:"폐동맥",p4:"폐정맥"},
+  arrows:{PA:{dir:1,style:"dashed"},PV:{dir:1,style:"dashed"},AO:{dir:1,style:"solid"},VC:{dir:1,style:"solid"}},
+  colors:{RA:"blue",RV:"blue",LA:"red",LV:"red",PA:"blue",PV:"red",AO:"red",VC:"blue"}
+};
+const blank=()=>({labels:{},seq:{},arrows:{},colors:{},who:{}});
+let S=blank(), mode="label", tool={label:null,arrow:"solid",color:"red"}, selCh=null, graded=null;
+try{const s=JSON.parse(localStorage.getItem("circ-v4")||"null"); if(s) S=Object.assign(blank(),s);}catch(e){}
+const save=()=>{try{localStorage.setItem("circ-v4",JSON.stringify(S))}catch(e){}};
+const el=(t,a={})=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e};
+const pts=p=>p.map(q=>q.join(",")).join(" ");
+
+function measure(d){const m=document.getElementById("meas");m.setAttribute("d",d);return[m,m.getTotalLength()]}
+function heads(d,dir){const[m,L]=measure(d);let s="";for(const f of [0.3,0.72]){const l=f*L,p=m.getPointAtLength(l),q=m.getPointAtLength(Math.min(L,l+1));
+  let ux=q.x-p.x,uy=q.y-p.y;const n=Math.hypot(ux,uy)||1;ux=ux/n*dir;uy=uy/n*dir;
+  s+=`M${p.x+ux*8},${p.y+uy*8} L${p.x-ux*6-uy*6.5},${p.y-uy*6+ux*6.5} L${p.x-ux*6+uy*6.5},${p.y-uy*6-ux*6.5} Z `;}return s}
+function mid(d){const[m,L]=measure(d);const p=m.getPointAtLength(L/2);return[p.x,p.y]}
+
+function draw(){
+  const gC=document.getElementById("chambers"),gV=document.getElementById("vessels"),gL=document.getElementById("labels"),gB=document.getElementById("badges");
+  gC.innerHTML=gV.innerHTML=gL.innerHTML=gB.innerHTML="";
+  for(const k in CH){
+    const cls=["ch",S.colors[k]||"",selCh===k?"sel":"",graded?(graded.ch[k]?"ok":"bad"):(nameG&&k in nameG)?(nameG[k]?"ok":"bad"):""].join(" ");
+    const p=el("path",{d:CH[k].d,class:cls,"data-k":k,tabindex:0,role:"button","aria-label":S.labels[k]||"이름 없는 방"});
+    p.addEventListener("click",()=>tapCh(k));
+    p.addEventListener("pointerdown",e=>{if(mode==="label"&&S.labels[k])startDrag(e,S.labels[k],k)});
+    gC.append(p);
+    const lb=S.labels[k];
+    const t=el("text",{x:CH[k].t[0],y:CH[k].t[1],class:"chl"+(lb?"":" empty")}); t.textContent=lb||"?"; gL.append(t);
+  }
+  for(const k in VS){
+    const d=VS[k],c=S.colors[k]||"";
+    gV.append(el("path",{d,class:"tubeE"}));
+    gV.append(el("path",{d,class:"tubeI "+c}));
+    gV.append(el("path",{d,class:"tubeH"}));
+    const a=S.arrows[k];
+    if(a){const on=c?" on-col":"";
+      gV.append(el("path",{d,class:"flowL"+on,"stroke-dasharray":a.style==="dashed"?"7 6":"none"}));
+      gV.append(el("path",{d:heads(d,a.dir),class:"flowL"+on,fill:c?"var(--paper)":"var(--ink)"}));}
+    const h=el("path",{d,class:"hit","data-v":k}); h.addEventListener("click",()=>tapV(k));
+    h.style.pointerEvents=(mode==="label"||mode==="seq")?"none":"stroke"; gV.append(h);
+    if(graded||(vesG&&k in vesG)){const m=mid(d),ok=graded?graded.v[k]:vesG[k];
+      const g=el("g",{class:"badge"}); g.append(el("circle",{cx:m[0]+(m[0]<200?-20:20),cy:m[1],r:10,fill:ok?"var(--ok)":"var(--bad)"}));
+      const t=el("text",{x:m[0]+(m[0]<200?-20:20),y:m[1]});t.textContent=ok?"✓":"✗";g.append(t);gB.append(g);
+      const why=!graded&&vesWhy&&vesWhy[k];
+      if(why){const bx=m[0]+(m[0]<200?-20:20),w=why.length*11+12;
+        gB.append(el("rect",{x:bx-w/2,y:m[1]+13,width:w,height:18,rx:9,class:"whyR"}));
+        const wt=el("text",{x:bx,y:m[1]+22,class:"whyT"});wt.textContent=why;gB.append(wt);}}
+  }
+  if(graded)for(const k in CH){const m=CH[k].t;const ok=graded.chC[k];
+    const g=el("g",{class:"badge"}); g.append(el("circle",{cx:m[0]+19,cy:m[1]-13,r:6,fill:ok?"var(--ok)":"var(--bad)"}));gB.append(g);}
+}
+
+function changed(){graded=null;nameG=null;vesG=null;vesWhy=null;const nm=document.getElementById("nameMsg");nm.textContent="";nm.className="";document.getElementById("result").hidden=true;
+  document.querySelectorAll("select").forEach(s=>s.classList.remove("ok","bad"));save();draw();}
+
+function tapCh(k){
+  if(mode==="color"&&!S.colorOk){S.colors[k]=tool.color==="erase"?undefined:tool.color;changed();}
+}
+function tapV(k){
+  if(mode==="arrow"){
+    const a=S.arrows[k];if(!a||S.circOk)return;a.dir*=-1;changed();
+  }else if(mode==="color"&&!S.colorOk){S.colors[k]=tool.color==="erase"?undefined:tool.color;changed();}
+}
+
+const HINT={
+  label:()=>S.namesOk?"심장의 이름을 모두 맞혔어요! ② 동맥혈 · 정맥혈로 넘어가세요.":"이름 카드를 끌어다 심장의 방(?)에 놓으세요. 4개를 모두 놓은 뒤 이름 채점하기를 누르세요. 붙인 이름은 다른 방으로 옮기거나 바깥으로 끌어내면 지워져요.",
+  arrow:()=>S.circOk?"온몸순환 · 허파순환까지 모두 맞혔어요! 훌륭해요.":"온몸순환은 실선, 허파순환은 점선으로 표시하세요. 카드를 끌어다 혈관에 놓고, 혈관을 누르면 화살표 방향이 바뀌어요. 지우개 카드를 놓으면 지워져요.",
+  seq:()=>S.seqOk?"순서를 모두 맞혔어요! ④ 온몸순환 · 허파순환으로 넘어가세요.":"빈칸을 눌러 알맞은 말을 고르세요. 4칸을 모두 채운 뒤 순서 채점하기를 누르세요.",
+  color:()=>S.colorOk?"동맥혈 · 정맥혈을 모두 맞혔어요! ③ 혈액이 흐르는 순서로 넘어가세요.":"동맥혈은 산소가 많이 들어 있는 혈액, 정맥혈은 산소가 적고 이산화 탄소가 많이 들어 있는 혈액이에요. 동맥혈 또는 정맥혈을 고른 뒤, 그 피가 흐르는 혈관이나 심장의 방을 누르세요."
+};
+function setHint(){document.getElementById("hint").textContent=HINT[mode]()}
+
+function renderTools(){
+  const box=document.getElementById("tools"),fl=document.getElementById("flow");document.getElementById("flowHold").append(fl);box.innerHTML="";
+  const mk=(html,on,fn)=>{const b=document.createElement("button");b.className="tool";b.innerHTML=html;b.setAttribute("aria-pressed",on);b.onclick=fn;box.append(b)};
+  if(mode==="label"){
+    const used=Object.values(S.labels);
+    for(const n of ["우심방","좌심실","우심실","좌심방"]){
+      const b=document.createElement("button");b.className="tool chip"+(used.includes(n)||S.namesOk?" used":"");b.textContent=n;
+      b.addEventListener("pointerdown",e=>startDrag(e,n,null));box.append(b);}
+  }else if(mode==="seq"){box.append(fl);
+  }else if(mode==="arrow"){
+    for(const[v,html,txt] of [["solid",'<span class="ln"></span>온몸순환',"온몸순환"],["dashed",'<span class="ln d"></span>허파순환',"허파순환"],["erase","지우개","지우개"]]){
+      const b=document.createElement("button");b.className="tool chip"+(S.circOk?" used":"");b.innerHTML=html;
+      b.addEventListener("pointerdown",e=>startDrag(e,v,null,"circ",txt));box.append(b);}
+  }else{
+    mk('<span class="sw" style="background:var(--art)"></span>동맥혈',tool.color==="red",()=>{tool.color="red";renderTools()});
+    mk('<span class="sw" style="background:var(--vein)"></span>정맥혈',tool.color==="blue",()=>{tool.color="blue";renderTools()});
+    mk("지우개",tool.color==="erase",()=>{tool.color="erase";renderTools()});
+  }
+  setHint();
+}
+let drag=null,nameG=null,vesG=null,vesWhy=null;
+const STEPBTN={label:"이름 채점하기",seq:"순서 채점하기",color:"동맥혈 · 정맥혈 채점하기",arrow:"순환 표시 채점하기"};
+const stepOk=m=>!!({label:S.namesOk,seq:S.seqOk,color:S.colorOk,arrow:S.circOk})[m];
+function updateLocks(){
+  const dis={label:false,color:!S.namesOk,seq:!S.colorOk,arrow:!S.seqOk};
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-disabled",dis[t.dataset.mode]));
+  document.getElementById("finalPanel").classList.toggle("locked",!S.circOk);
+  document.querySelectorAll("#flow select").forEach(x=>x.disabled=!!S.seqOk);
+  const note=!S.namesOk?"🔒 ① 이름을 모두 맞히면 ② 동맥혈 · 정맥혈이 열려요.":!S.colorOk?"🔒 ② 동맥혈 · 정맥혈을 모두 맞히면 ③ 혈액이 흐르는 순서가 열려요.":!S.seqOk?"🔒 ③ 순서를 모두 맞히면 ④ 온몸순환 · 허파순환이 열려요.":!S.circOk?"🔒 ④ 온몸순환 · 허파순환까지 맞히면 모든 단계를 마쳐요.":"";
+  const ln=document.getElementById("lockNote");ln.textContent=note;ln.hidden=!note;
+  const nb=document.getElementById("nameCheck");nb.textContent=STEPBTN[mode];nb.disabled=stepOk(mode);
+}
+document.getElementById("nameCheck").onclick=()=>{
+  const msg=document.getElementById("nameMsg");msg.className="";
+  const fail=(t)=>{msg.textContent=t;msg.className="bad";};
+  let n=0,tot=0,detail="";vesWhy=null;
+  if(mode==="label"){
+    if(Object.keys(CH).some(k=>!S.labels[k]))return fail("4개의 방에 이름을 모두 놓아 주세요.");
+    nameG={};for(const k in CH){nameG[k]=S.labels[k]===ANS.labels[k];n+=nameG[k];}tot=4;
+    if(n===tot)S.namesOk=true;
+  }else if(mode==="seq"){
+    if(Object.keys(ANS.seq).some(k=>!S.seq[k]))return fail("4개의 빈칸을 모두 채워 주세요.");
+    for(const id in ANS.seq){const x=document.getElementById(id),ok=S.seq[id]===ANS.seq[id];n+=ok;x.classList.toggle("ok",ok);x.classList.toggle("bad",!ok);}tot=4;
+    if(n===tot)S.seqOk=true;
+  }else if(mode==="arrow"){
+    if(Object.keys(VS).some(k=>!S.arrows[k]))return fail("4개의 혈관에 모두 표시해 주세요.");
+    vesG={};vesWhy={};let bs=0,bd=0;
+    for(const k in VS){const a=S.arrows[k],x=ANS.arrows[k],st=a.style===x.style,dr=a.dir===x.dir;vesG[k]=st&&dr;n+=vesG[k];
+      if(!st)bs++;if(!dr)bd++;
+      if(!vesG[k])vesWhy[k]=!st&&!dr?"순환 이름·방향":!st?"순환 이름":"화살표 방향";}
+    tot=4;
+    const parts=[];if(bs)parts.push(`순환 이름(온몸순환·허파순환)이 틀린 혈관 ${bs}개`);if(bd)parts.push(`화살표 방향이 틀린 혈관 ${bd}개`);
+    if(parts.length)detail=` ${parts.join(", ")}가 있어요. 그림의 표시를 보고 고쳐 보세요.`;
+    if(n===tot)S.circOk=true;
+  }else{
+    const keys=[...Object.keys(CH),...Object.keys(VS)];
+    if(keys.some(k=>!S.colors[k]))return fail("심장의 방 4개와 혈관 4개에 모두 표시해 주세요.");
+    nameG={};vesG={};
+    for(const k in CH){nameG[k]=S.colors[k]===ANS.colors[k];n+=nameG[k];}
+    for(const k in VS){vesG[k]=S.colors[k]===ANS.colors[k];n+=vesG[k];}tot=8;
+    if(n===tot)S.colorOk=true;
+  }
+  if(n===tot){save();msg.textContent=mode==="arrow"?`${n}/${tot} 모두 정답!`:`${n}/${tot} 모두 정답! 다음 단계가 열렸어요.`;msg.className="ok";updateLocks();renderTools();
+    if(mode==="arrow"){draw();document.getElementById("check").click();return;}}
+  else msg.textContent=`${n}/${tot} 맞았어요.`+(detail||" 틀린 곳(✗, 주황 테두리)을 고쳐 보세요."),msg.className="bad";
+  if(mode!=="seq")draw();
+};
+function targetAt(x,y){const t=document.elementFromPoint(x,y);if(!t||!t.classList)return null;
+  if(drag.kind==="circ")return t.classList.contains("hit")?t.dataset.v:null;
+  return t.classList.contains("ch")?t.dataset.k:null}
+function moveDrag(e){if(!drag)return;e.preventDefault();drag.g.style.left=e.clientX+"px";drag.g.style.top=e.clientY+"px";
+  drag.k=targetAt(e.clientX,e.clientY);
+  if(drag.kind==="circ")document.querySelectorAll(".hit").forEach(p=>p.classList.toggle("drop",p.dataset.v===drag.k));
+  else document.querySelectorAll(".ch").forEach(p=>p.classList.toggle("drop",p.dataset.k===drag.k));}
+function startDrag(e,name,fromK,kind="label",text=name){
+  if(e.button>0||(kind==="label"&&S.namesOk)||(kind==="circ"&&S.circOk))return;e.preventDefault();
+  const g=document.createElement("div");g.className="ghost";g.textContent=text;document.body.append(g);document.body.classList.add("dragging");
+  drag={name,fromK,g,k:null,kind};moveDrag(e);
+  window.addEventListener("pointermove",moveDrag,{passive:false});
+  window.addEventListener("pointerup",endDrag);window.addEventListener("pointercancel",endDrag);
+}
+function endDrag(){
+  if(!drag)return;window.removeEventListener("pointermove",moveDrag);window.removeEventListener("pointerup",endDrag);window.removeEventListener("pointercancel",endDrag);
+  drag.g.remove();document.body.classList.remove("dragging");
+  const{name,fromK,k,kind}=drag;drag=null;
+  if(kind==="circ"){
+    if(!k){draw();return;}
+    if(name==="erase")delete S.arrows[k];
+    else{const a=S.arrows[k];S.arrows[k]={dir:a?a.dir:-1,style:name};}
+    changed();return;
+  }
+  if(k){if(fromK&&fromK!==k){S.labels[fromK]=S.labels[k];if(!S.labels[fromK])delete S.labels[fromK];}S.labels[k]=name;}
+  else if(fromK)delete S.labels[fromK];
+  else{draw();return;}
+  renderTools();changed();
+}
+function setMode(m){mode=m;document.querySelector('.tab[data-mode="'+m+'"]').after(document.getElementById("toolbox"));updateLocks();document.getElementById("svg").classList.toggle("dragmode",m==="label"||m==="arrow");selCh=null;document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.mode===m));renderTools();draw();}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{if(t.getAttribute("aria-disabled")==="true")return;setMode(t.dataset.mode)});
+
+// selects
+for(const id of ["a1","a3","p2","p4"]){
+  const s=document.getElementById(id);s.innerHTML='<option value="">(  골라요  )</option>'+TERMS.map(t=>`<option>${t}</option>`).join("");
+  s.value=S.seq[id]||"";s.classList.toggle("filled",!!s.value);
+  s.onchange=()=>{S.seq[id]=s.value;s.classList.toggle("filled",!!s.value);changed();};
+}
+// name
+for(const id of ["ban","bun","nm"]){const i=document.getElementById(id);i.value=S.who[id]||"";i.oninput=()=>{S.who[id]=i.value;save();}}
+
+document.getElementById("check").onclick=()=>{
+  const g={ch:{},chC:{},v:{}};let n1=0,n2=0,n3=0,n4=0;
+  for(const k in CH){g.ch[k]=S.labels[k]===ANS.labels[k];n1+=g.ch[k];g.chC[k]=S.colors[k]===ANS.colors[k];n4+=g.chC[k];}
+  for(const k in VS){const a=S.arrows[k],x=ANS.arrows[k];const ar=!!a&&a.dir===x.dir&&a.style===x.style;const co=S.colors[k]===ANS.colors[k];
+    n3+=ar;n4+=co;g.v[k]=ar&&co;}
+  for(const id in ANS.seq){const s=document.getElementById(id),ok=S.seq[id]===ANS.seq[id];n2+=ok;s.classList.toggle("ok",ok);s.classList.toggle("bad",!ok);}
+  graded=g;draw();
+  const set=(i,v,t)=>document.getElementById(i).textContent=v+"/"+t;
+  set("s1",n1,4);set("s2",n2,4);set("s3",n3,4);set("s4",n4,8);
+  const tot=n1+n2+n3+n4;
+  document.getElementById("total").textContent=tot===20?"20문항 모두 정답! 혈액 순환 완벽 정리 🎉":`20문항 중 ${tot}개 정답. 표시된 곳을 다시 살펴보세요.`;
+  document.getElementById("result").hidden=false;document.getElementById("answer").hidden=false;
+  if(tot===20&&!revealing)celebrate();
+  document.getElementById("result").classList.remove("flash");void document.getElementById("result").offsetWidth;document.getElementById("result").classList.add("flash");
+};
+let revealing=false;
+function celebrate(){
+  const box=document.getElementById("celebrate"),nm=(S.who.nm||"").trim();
+  document.getElementById("cMsg").textContent=(nm?nm+" 학생, ":"")+"1~4단계를 모두 해냈어요! 20문항 전부 정답, 이제 혈액 순환 박사예요!";
+  box.hidden=false;document.getElementById("cClose").focus();
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const c=document.getElementById("confetti"),x=c.getContext("2d"),W=c.width=innerWidth,H=c.height=innerHeight;
+  const cs=getComputedStyle(document.documentElement),cols=["--art","--vein","--sel","--accent","--ok"].map(v=>cs.getPropertyValue(v).trim());
+  const P=Array.from({length:140},()=>({x:Math.random()*W,y:-20-Math.random()*H*.6,vx:(Math.random()-.5)*2,vy:2+Math.random()*3,r:Math.random()*6,s:5+Math.random()*6,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){if(box.hidden||t++>260){x.clearRect(0,0,W,H);return;}x.clearRect(0,0,W,H);
+    for(const p of P){p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();}
+    requestAnimationFrame(f);})();
+}
+document.getElementById("cClose").onclick=()=>{document.getElementById("celebrate").hidden=true};
+document.getElementById("celebrate").addEventListener("click",e=>{if(e.target.id==="celebrate")e.currentTarget.hidden=true});
+document.getElementById("answer").onclick=()=>{
+  revealing=true;
+  const who=S.who;S=JSON.parse(JSON.stringify(ANS));S.who=who;S.namesOk=S.seqOk=S.circOk=S.colorOk=true;save();updateLocks();
+  for(const id in ANS.seq){const s=document.getElementById(id);s.value=ANS.seq[id];s.classList.add("filled");}
+  renderTools();
+  document.getElementById("check").click();revealing=false;
+};
+const fsBtn=document.getElementById("fs"),fsMsg=document.getElementById("fsMsg"),de=document.documentElement;
+const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+const fsSync=()=>{fsBtn.textContent=isFs()?"⛶ 전체화면 끝내기":"⛶ 전체화면"};
+const fsFail=()=>{fsMsg.textContent="이 화면에서는 전체화면을 쓸 수 없어요. 깃허브 주소로 열거나, 아이패드는 '홈 화면에 추가'로 열어 주세요.";fsMsg.hidden=false;setTimeout(()=>{fsMsg.hidden=true},5000);};
+fsBtn.onclick=()=>{try{
+  if(isFs()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return;}
+  const req=de.requestFullscreen||de.webkitRequestFullscreen;
+  if(!req||!(document.fullscreenEnabled||document.webkitFullscreenEnabled))return fsFail();
+  const p=req.call(de);if(p&&p.catch)p.catch(fsFail);
+}catch(e){fsFail();}};
+document.addEventListener("fullscreenchange",fsSync);document.addEventListener("webkitfullscreenchange",fsSync);
+let armed=false;const rb=document.getElementById("reset");
+rb.onclick=()=>{
+  if(!armed){armed=true;rb.textContent="정말 모두 지울까요?";setTimeout(()=>{armed=false;rb.textContent="처음부터"},3000);return;}
+  armed=false;rb.textContent="처음부터";const who=S.who;S=blank();S.who=who;
+  document.querySelectorAll("select").forEach(s=>{s.value="";s.classList.remove("filled")});
+  setMode("label");changed();document.getElementById("answer").hidden=true;
+};
+setMode("label");
+</script>
+
+</body>
+</html>
